@@ -1,0 +1,232 @@
+
+{% extends 'shop/basic.html' %}
+
+    {%block title %} Home-KharidariKaro {%endblock%}
+    {% block css %}
+
+        .col-md-3
+        {
+        display: inline-block;
+        margin-left:-4px;
+        }
+        .carousel-indicators .active {
+        background-color: blue;
+          }
+        .col-md-3 img{
+        width:auto;
+        height:150px;
+        }
+        body .carousel-indicator li{
+        background-color: blue;
+        }
+        body .carousel-indicators{
+        bottom: 0;
+        }
+        body .carousel-control-prev-icon,
+        body .carousel-control-next-icon{
+        background-color: blue;
+        }
+        .carousel-control-prev,
+        .carousel-control-next{
+          top: auto;
+          bottom: auto;
+          padding-top:200px;
+          }
+         body .no-padding{
+         padding-left: 0;
+         padding-right: 0;
+         }
+  {% endblock %}
+  {% block body %}
+  
+    {% load static %}
+    <div class="container ">
+
+        {% for product,range,no_of_slides in all_prod %}
+        <h3 class="my-4">!!Flash Sale!! {{product.0.product_catogery}}-Recommended For You</h3>
+        <div class="row mx-auto">
+        <div id="demo{{forloop.counter}}" class="col-sm-12 col-md-6 col-xl-12 carousel slide  my-3" data-ride="carousel">
+            <ul class="carousel-indicators">
+              <li data-target="#demo{{forloop.counter}}" data-slide-to="0" class="active"></li>
+              <!-- Using For Loop For the Furtur slides.... -->
+              {% for i in range %}
+                <li data-targe='#demo{{forloop.parentloop.counter}}' data-slide-to="{{i}}"></li>
+              {% endfor %}
+            </ul>
+        
+            <!--Slideshow starts here -->
+            <div class="container carousel-inner no-padding ml-2">
+              <div class="carousel-item active">
+               {% for i in product  %}
+                  <div class="col-xs-3 col-sm-3 col-md-3 ">
+                    <div class="card align-items-center" style="width: 18rem;">
+                      <img src='/media/{{i.proudct_image}}' id="image{{i.product_image}}" class="card-img-top" alt="...">
+                      <div class="card-body">
+                        <h5 class="card-title" id='namepr{{i.id}}'>{{i.product_name}}</h5>
+                        <h6 class="card-text">Price :Rs {{i.product_price}}</h6>
+                        <p class="card-text">{{i.product_desc|slice:"0:53"}}...</p>
+                        <div class="row">
+                        <span id="divpr{{i.id}}" class="divpr">
+                          <button  id="pr{{i.id}}" class="btn btn-primary cart ml-4">Add To Cart</button>
+                        </span>
+                        <a href="productview/{{i.id}}"><button  id="qv{{i.id}}" class="btn btn-primary  mx-2">Quick View</button></a>
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% if forloop.counter|divisibleby:4 and forloop.counter > 0 and not forloop.last %}
+              </div>
+              <div class="carousel-item">
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              
+        </div>
+      </div>
+    
+        
+            <!-- left and right controls for the slide -->
+            <a class="carousel-control-prev" href="#demo{{forloop.counter}}" data-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </a>
+            <a class="carousel-control-next" href="#demo{{forloop.counter}}" data-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </a>
+      </div>
+  {% endfor %}
+</div>
+  {% endblock %}
+  <!-- JAVA SCRIPT STARTED HERE..-->
+  {%block js %}
+  <script>
+    console.log("CART WELCOME JAVASCIPT");
+
+    if(localStorage.getItem('cart')==null)
+    {
+      var cart={};
+    }
+    else
+    {
+      cart=JSON.parse(localStorage.getItem('cart'));
+      //document.getElementById('cart').innerHTML=Object.keys(cart).length;
+      var abc=sum(cart);
+      document.getElementById('cart').innerHTML=abc;
+      updateCart(cart);
+    }
+    // After Clicking Clear Cart the Add to Cart button is dynamically generated and we have static generated div tag above 
+    // This dynamic tag so we need to use on method of jQuery
+     //$('.cart').click(function(){
+       $(".divpr").on('click',"button.cart",function()
+       {
+      // console.log("CLICKED THE ADD TO CART");
+       var idstr=this.id.toString();
+       console.log(idstr);
+       if(cart[idstr]!=undefined)
+       {
+         qty=cart[idstr][0]+1;
+         //cart[idstr][0]+=1;
+       }
+       else
+       {
+         qty=1;
+         name=document.getElementById('name'+idstr).innerHTML;
+        cart[idstr]=[qty,name];
+       }
+      //console.log(cart);
+      updateCart(cart);
+      updatePopover(cart);
+     });
+     // Function to Update the Cart Value
+     function updateCart(cart)
+     {
+       for(var item in cart){
+         document.getElementById('div'+item).innerHTML="<button id='minus"+item+"' class='btn btn-primary minus'>-</button> <span id='val"+item+"''>"+cart[item][0]+"</span>  <button id='plus"+item+"' class='btn btn-primary plus'>+</button>";
+       }
+       localStorage.setItem('cart',JSON.stringify(cart));
+      var abc=sum(cart);
+      //document.getElementById('cart').innerHTML=Object.keys(cart).length;
+      document.getElementById('cart').innerHTML=abc;
+      updatePopover(cart);
+     }
+
+     // Function To calculate total items in cart....
+     function sum( obj ) {
+        var sum = 0;
+        for( var el in obj ) {
+          if( obj.hasOwnProperty( el ) ) {
+            sum += parseFloat( obj[el] );
+            }
+        }
+        return sum;
+      }
+
+      // Function to Update Our PoP-Over Cart values
+      function updatePopover(cart)
+      {
+        //console.log("Updating PopOver....");
+        var popStr="";
+        popStr=popStr+"<h5> Items added by you in the cart. </h5><div class='mx-2 my-2'>";
+        var i=1;
+        for( var item in cart)
+        {
+          popStr=popStr+"<b>"+i+"</b>. ";
+          //console.log('name'+item+document.getElementById('name'+item).innerHTML);
+          popStr=popStr+document.getElementById('name'+item).innerHTML.slice(0,20)+'... Qty: '+cart[item][0]+'<br>';
+          i+=1;
+        }
+        popStr=popStr+"</div> <a href='/shop/checkout' class='btn btn-primary'>Checkout</a>"
+        //popStr+='<button href="/shop/" onclick="clearCart(); return false;">Clear</a>'
+        console.log(popStr);
+        document.getElementById('popupcart').setAttribute('data-content',popStr);
+        $('#popupcart').popover('show');
+      }
+
+      // Function For Clearing the Cart value....
+      function clearCart(cart)
+      {
+        console.log("Clear Cart Pressed");
+      }
+      // JQUERY CODE FOR PLUS MINUS BUTTON CLICK IF
+     
+      $(".divpr").on("click","button.minus",function()
+      {
+        a=this.id.slice(7,);
+        cart['pr'+a][0]=cart['pr'+a][0]-1;
+        cart['pr'+a][0]=Math.max(0,cart['pr'+a][0])
+        document.getElementById('valpr'+a).innerHTML=cart['pr'+a][0];
+        updateCart(cart);
+
+      });
+      $(".divpr").on("click","button.plus",function()
+      {
+        a=this.id.slice(6,);
+        cart['pr'+a][0]=cart['pr'+a][0]+1;
+        document.getElementById('valpr'+a).innerHTML=cart['pr'+a][0];
+        updateCart(cart);
+      });
+
+      // IFF Clear Cart Button is Clicked....
+      $('.clearCartButton').click(function(){
+       cart=JSON.parse(localStorage.getItem('cart'));
+       console.log(cart);
+       for(var item in cart)
+       {
+         document.getElementById('div'+item).innerHTML='<button id="'+item+'" class="btn btn-primary cart"> Add To Cart </button>'
+       }
+       localStorage.clear();
+       cart={};
+       updateCart(cart);
+     });
+     
+     
+</script>
+
+  {% endblock %}
+<!-- ADDITIONAL JAVASCRIPT BLOCK FOR CART ADDITION 
+  HERE WE WILL not use session storage because it stores the data only till session of the page then it expires even moving to new tab
+  So We'll be using localStorage which stores the data in local storage till the page is not reloaded again it will store the data
+  We can also keep the data even after refessing the page using Javascript and JQuery code..
+  Code taken from codewithharry django video 36 -->
+
+  
